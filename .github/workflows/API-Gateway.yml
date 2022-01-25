@@ -47,7 +47,7 @@ jobs:
         uses: jacobtomlinson/gha-find-replace@v2
         with:
           find: "yarn install --pure-lockfile"
-          replace: "yarn install --network-timeout 100000"
+          replace: "yarn install --pure-lockfile --network-timeout 100000"
           regex: false
           include: "Dockerfile"
       -
@@ -70,7 +70,6 @@ jobs:
           echo "${DOCKER_PASSWORD}" | docker login --username "${{ steps.prepare.outputs.docker_username }}" --password-stdin
       -
         name: Docker Buildx [Release] (push)
-        if: success() && startsWith(github.ref, 'refs/tags/')
         run: |
           docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
             --output "type=image,push=true" \
