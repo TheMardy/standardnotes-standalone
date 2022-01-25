@@ -1,0 +1,91 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Syncing-Server-JS
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      -
+        name: Get Tag
+        id: tag
+        uses: oprypin/find-latest-tag@v1
+        with:
+          repository: standardnotes/syncing-server-js  
+          releases-only: false  
+      -
+        name: Prepare
+        id: prepare
+        run: |
+          echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          echo ::set-output name=docker_platforms::linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
+          echo ::set-output name=docker_username::themardy
+          echo ::set-output name=docker_image::themardy/sn-syncing-server-js
+      -
+        # https://github.com/crazy-max/ghaction-docker-buildx
+        name: Set up Docker Buildx
+        uses: crazy-max/ghaction-docker-buildx@master
+        with:
+          version: latest
+      - 
+        name: Checkout
+        uses: actions/checkout@master
+        with:
+          repository: standardnotes/syncing-server-js
+      - 
+        name: Patch Dockerfile
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "yarn install --pure-lockfile"
+          replace: "yarn install --pure-lockfile --network-timeout 100000"
+          regex: false
+          include: "Dockerfile"
+      -
+        name: Docker Buildx (no push)
+        run: |
+          docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
+            --output "type=image,push=false" \
+            --label "org.label-schema.build-date=${{ steps.prepare.outputs.build_date }}" \
+            --label "org.label-schema.version=${{ steps.tag.outputs.tag }}" \
+            --label "org.label-schema.vcs-ref=${GITHUB_SHA::8}" \
+            --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
+            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.tag.outputs.tag }}" \
+            --file Dockerfile .
+      -
+        name: Docker Login
+        if: success() && github.event_name != 'pull_request'
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login --username "${{ steps.prepare.outputs.docker_username }}" --password-stdin
+      -
+        name: Docker Buildx [Release] (push)
+        run: |
+          docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
+            --output "type=image,push=true" \
+            --label "org.label-schema.build-date=${{ steps.prepare.outputs.build_date }}" \
+            --label "org.label-schema.version=${{ steps.tag.outputs.tag }}" \
+            --label "org.label-schema.vcs-ref=${GITHUB_SHA::8}" \
+            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.tag.outputs.tag }}" \
+            --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
+            --file Dockerfile .
+      -
+       name: Docker Check Manifest
+       if: always() && github.event_name != 'pull_request'
+       run: |
+          docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.tag.outputs.tag }}
+      -
+        name: Clear
+        if: always() && github.event_name != 'pull_request'
+        run: |
+          rm -f ${HOME}/.docker/config.json
