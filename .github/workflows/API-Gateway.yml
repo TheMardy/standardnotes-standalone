@@ -42,7 +42,14 @@ jobs:
         uses: actions/checkout@master
         with:
           repository: standardnotes/api-gateway
-
+      - 
+        name: Patch Dockerfile
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "yarn install --pure-lockfile"
+          replace: "yarn install --network-timeout 100000"
+          regex: false
+          include: "Dockerfile"
       -
         name: Docker Buildx (no push)
         run: |
