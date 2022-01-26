@@ -1,4 +1,4 @@
-version: '2'
+version: '3.8'
 services:
   syncing-server-js:
     image: themardy/sn-syncing-server-js:latest
@@ -152,7 +152,3 @@ services:
 networks:
   standardnotes_standalone:
     name: standardnotes_standalone
-
-volumes:
-  caddy_data:
-  caddy_config:
