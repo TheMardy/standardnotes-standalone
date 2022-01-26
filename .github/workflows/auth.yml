@@ -62,16 +62,6 @@ jobs:
             --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.tag.outputs.tag }}" \
             --file Dockerfile .
       -
-        name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: '${{ steps.prepare.outputs.docker_image }}:${{ steps.tag.outputs.tag }}'
-          format: 'table'
-          exit-code: '0'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-      -
         name: Docker Login
         if: success() && github.event_name != 'pull_request'
         env:
@@ -89,6 +79,16 @@ jobs:
             --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.tag.outputs.tag }}" \
             --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
             --file Dockerfile .
+      -
+        name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ steps.prepare.outputs.docker_image }}:${{ steps.tag.outputs.tag }}'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
       -
        name: Docker Check Manifest
        if: always() && github.event_name != 'pull_request'
