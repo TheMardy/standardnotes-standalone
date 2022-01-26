@@ -121,7 +121,7 @@ services:
       - standardnotes_standalone
 
   db:
-    image: linuxserver/mariadb
+    image: mariadb:10.3
     container_name: db-standalone
     environment:
       MYSQL_DATABASE: '${DB_DATABASE}'
