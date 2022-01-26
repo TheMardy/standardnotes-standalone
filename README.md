@@ -17,20 +17,22 @@ Everything is the same as [standardnotes/standalone](https://github.com/standard
 ![Syncing-Server-JS](https://github.com/TheMardy/standardnotes-standalone/actions/workflows/syncing-server-js.yml/badge.svg)
 
 ## 🐳 Supported platforms
+
 | Platform  | Tested |
-| ------------- | ------------- |
-| `linux/amd64`  | ✓  |
-| `linux/arm/v6`  | -  |
-| `linux/arm/v7`  | ✓  |
-| `linux/arm64`  | ✓  |
-| `linux/ppc64le`  | -  |
-| `linux/s390x`  | -  |
+| --- | --- |
+| `linux/amd64` | ✓ |
+| `linux/arm/v6` | - |
+| `linux/arm/v7` | ✓ |
+| `linux/arm64` | ✓ |
+| `linux/ppc64le` | - |
+| `linux/s390x` | - |
+
 Note: You might need to choose a different mariadb image if you use `s390x`, `ppc64le` or `arm/v6`.
 
 
 ## Latest Version check
 |   | Standardnotes | Multi-Arch |
-|---|---|---|---|---|
+|---|---|---|
 | Auth | ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/standardnotes/auth) | ![TheMardy](https://img.shields.io/docker/v/themardy/sn-auth) ![Docker Pulls](https://img.shields.io/docker/pulls/themardy/sn-auth) | 
 | Api-Gateway | ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/standardnotes/api-gateway) | ![TheMardy](https://img.shields.io/docker/v/themardy/sn-api-gateway) ![Docker Pulls](https://img.shields.io/docker/pulls/themardy/sn-api-gateway) |  
 | Syncing-Server-JS | ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/standardnotes/syncing-server-js) | ![TheMardy](https://img.shields.io/docker/v/themardy/sn-syncing-server-js) ![Docker Pulls](https://img.shields.io/docker/pulls/themardy/sn-syncing-server-js) |  
