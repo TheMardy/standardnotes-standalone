@@ -7,9 +7,9 @@ services:
       - db
       - cache
     entrypoint: [
-      "./wait-for.sh", "db", "3306",
-      "./wait-for.sh", "cache", "6379",
-      "./docker/entrypoint.sh", "start-web"
+      "./packages/syncing-server/wait-for.sh", "db", "3306",
+      "./packages/syncing-server/wait-for.sh", "cache", "6379",
+      "./packages/syncing-server/docker/entrypoint.sh", "start-web"
     ]
     env_file: .env
     environment:
@@ -26,10 +26,10 @@ services:
       - cache
       - syncing-server-js
     entrypoint: [
-      "./wait-for.sh", "db", "3306",
-      "./wait-for.sh", "cache", "6379",
-      "./wait-for.sh", "syncing-server-js", "3000",
-       "./docker/entrypoint.sh", "start-worker"
+      "./packages/syncing-server/wait-for.sh", "db", "3306",
+      "./packages/syncing-server/wait-for.sh", "cache", "6379",
+      "./packages/syncing-server/wait-for.sh", "syncing-server-js", "3000",
+       "./packages/syncing-server/docker/entrypoint.sh", "start-worker"
     ]
     env_file: .env
     environment:
@@ -51,10 +51,12 @@ services:
       PORT: 3000
       AUTH_JWT_SECRET: '${AUTH_JWT_SECRET}'
       REDIS_URL: '${REDIS_URL}'
+      FILES_SERVER_URL: '${FILES_SERVER_URL}'
     entrypoint: [
-      "./wait-for.sh", "auth", "3000",
-      "./wait-for.sh", "syncing-server-js", "3000",
-      "./docker/entrypoint.sh", "start-web"
+       "./packages/api-gateway/wait-for.sh", "auth", "3000",
+      "./packages/api-gateway/wait-for.sh", "syncing-server-js", "3000",
+      "./packages/api-gateway/wait-for.sh", "files", "3000",
+      "./packages/api-gateway/docker/entrypoint.sh", "start-web"
     ]
     restart: unless-stopped
     networks:
@@ -68,10 +70,10 @@ services:
       - cache
       - syncing-server-js
     entrypoint: [
-      "./wait-for.sh", "db", "3306",
-      "./wait-for.sh", "cache", "6379",
-      "./wait-for.sh", "syncing-server-js", "3000",
-      "./docker/entrypoint.sh", "start-web"
+      "./packages/auth/wait-for.sh", "db", "3306",
+      "./packages/auth/wait-for.sh", "cache", "6379",
+      "./packages/auth/wait-for.sh", "syncing-server-js", "3000",
+      "./packages/auth/docker/entrypoint.sh", "start-web"
     ]
     env_file: docker/auth.env
     environment:
@@ -86,6 +88,7 @@ services:
       DB_MIGRATIONS_PATH: '${DB_MIGRATIONS_PATH}'
       REDIS_URL: '${REDIS_URL}'
       AUTH_JWT_SECRET: '${AUTH_JWT_SECRET}'
+      VALET_TOKEN_SECRET: '${VALET_TOKEN_SECRET}'
     restart: unless-stopped
     networks:
       - standardnotes_standalone
@@ -98,10 +101,10 @@ services:
       - cache
       - auth
     entrypoint: [
-      "./wait-for.sh", "db", "3306",
-      "./wait-for.sh", "cache", "6379",
-      "./wait-for.sh", "auth", "3000",
-      "./docker/entrypoint.sh", "start-worker"
+      "./packages/auth/wait-for.sh", "db", "3306",
+      "./packages/auth/wait-for.sh", "cache", "6379",
+      "./packages/auth/wait-for.sh", "auth", "3000",
+      "./packages/auth/docker/entrypoint.sh", "start-worker"
     ]
     env_file: docker/auth.env
     environment:
@@ -116,10 +119,31 @@ services:
       DB_MIGRATIONS_PATH: '${DB_MIGRATIONS_PATH}'
       REDIS_URL: '${REDIS_URL}'
       AUTH_JWT_SECRET: '${AUTH_JWT_SECRET}'
+      VALET_TOKEN_SECRET: '${VALET_TOKEN_SECRET}'
     restart: unless-stopped
     networks:
       - standardnotes_standalone
 
+  files:
+    image: themardy/sn-files:latest
+    container_name: files-standalone
+    entrypoint: [
+      "./packages/files/wait-for.sh", "db", "3306",
+      "./packages/files/wait-for.sh", "cache", "6379",
+      "./packages/files/docker/entrypoint.sh", "start-web"
+    ]
+    ports:
+      - ${EXPOSED_FILES_PORT}:3000
+    env_file: docker/files.env
+    environment:
+      FILE_UPLOAD_PATH: '${FILE_UPLOAD_PATH}'
+      VALET_TOKEN_SECRET: '${VALET_TOKEN_SECRET}'
+    volumes:
+      - ./${FILE_UPLOAD_PATH}:/var/www/${FILE_UPLOAD_PATH}
+    restart: unless-stopped
+    networks:
+      - standardnotes_standalone
+      
   db:
     image: mariadb:10.3
     container_name: db-standalone
